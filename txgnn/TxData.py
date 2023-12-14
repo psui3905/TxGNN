@@ -108,6 +108,10 @@ class TxData:
 
         idx2id_disease = dict(df[df.x_type == 'disease'][['x_idx', 'x_id']].drop_duplicates().values)
         idx2id_disease.update(dict(df[df.y_type == 'disease'][['y_idx', 'y_id']].drop_duplicates().values))
+        
+        # add gene/protein
+        idx2id_gp = dict(df[df.x_type == 'gene/protein'][['x_idx', 'x_id']].drop_duplicates().values)
+        idx2id_gp.update(dict(df[df.y_type == 'gene/protein'][['y_idx', 'y_id']].drop_duplicates().values))
 
         df_ = pd.read_csv(os.path.join(self.data_folder, 'kg.csv'))
         df_['x_id'] = df_.x_id.apply(lambda x: convert2str(x))
@@ -119,8 +123,14 @@ class TxData:
         id2name_drug = dict(df_[df_.x_type == 'drug'][['x_id', 'x_name']].drop_duplicates().values)
         id2name_drug.update(dict(df_[df_.y_type == 'drug'][['y_id', 'y_name']].drop_duplicates().values))
         
+        # add gene/protein
+        id2name_gp = dict(df_[df_.x_type == 'gene/protein'][['x_id', 'x_name']].drop_duplicates().values)
+        id2name_gp.update(dict(df_[df_.y_type == 'gene/protein'][['y_id', 'y_name']].drop_duplicates().values))
+        
         return {'id2name_drug': id2name_drug,
                 'id2name_disease': id2name_disease,
                 'idx2id_disease': idx2id_disease,
-                'idx2id_drug': idx2id_drug
+                'idx2id_drug': idx2id_drug,
+                'idx2id_gp': idx2id_gp,
+                'id2name_gp': id2name_gp,
                }

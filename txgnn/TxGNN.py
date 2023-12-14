@@ -42,6 +42,7 @@ class TxGNN:
         self.device = torch.device(device)
         self.weight_bias_track = weight_bias_track
         self.G = data.G
+        self.id_mapping = data.retrieve_id_mapping()
         self.df, self.df_train, self.df_valid, self.df_test = data.df, data.df_train, data.df_valid, data.df_test
         self.data_folder = data.data_folder
         self.disease_eval_idx = data.disease_eval_idx
@@ -118,7 +119,8 @@ class TxGNN:
                    split = self.split,
                    data_folder = self.data_folder,
                    exp_lambda = exp_lambda,
-                   device = self.device
+                   device = self.device,
+                   info_dict = self.id_mapping,
                   ).to(self.device)    
         self.best_model = self.model
         

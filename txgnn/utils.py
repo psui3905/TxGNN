@@ -687,6 +687,7 @@ def obtain_disease_profile(G, disease, disease_etypes, disease_nodes):
     profiles_for_each_disease_types = []
     for idx, disease_etype in enumerate(disease_etypes):
         nodes = G.successors(disease, etype=disease_etype)
+        # print(nodes)
         num_nodes = len(G.nodes(disease_nodes[idx]))
         node_profile = torch.zeros((num_nodes,))
         node_profile[nodes] = 1.
