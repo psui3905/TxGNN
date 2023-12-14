@@ -22,8 +22,8 @@ TxGNN.model_initialize(n_hid = 100, # number of hidden dimensions
                       sim_measure = 'all_nodes_profile', # disease signature, choose from ['all_nodes_profile', 'protein_profile', 'protein_random_walk']
                       agg_measure = 'rarity', # how to aggregate sim disease emb with target disease emb, choose from ['rarity', 'avg']
                       num_walks = 200, # for protein_random_walk sim_measure, define number of sampled walks
-                      path_length = 2 # for protein_random_walk sim_measure, define path length
-                      )
+                      path_length = 2, # for protein_random_walk sim_measure, define path length
+                      llm = True)
 
 TxEval = TxEval(model = TxGNN)
 result = TxEval.eval_disease_centric(disease_idxs = 'test_set', 

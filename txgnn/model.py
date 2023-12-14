@@ -22,7 +22,7 @@ from .graphmask.sigmoid_penalty import SoftConcrete
 from .llm import Gpt4
 
 class DistMultPredictor(nn.Module):
-    def __init__(self, n_hid, w_rels, G, rel2idx, proto, proto_num, sim_measure, bert_measure, agg_measure, num_walks, walk_mode, path_length, split, data_folder, exp_lambda, info_dict, device):
+    def __init__(self, n_hid, w_rels, G, rel2idx, proto, proto_num, sim_measure, bert_measure, agg_measure, num_walks, walk_mode, path_length, split, data_folder, exp_lambda, info_dict, llm, device):
         super().__init__()
         
         self.proto = proto
@@ -198,35 +198,33 @@ class DistMultPredictor(nn.Module):
                                 disease_etypes = ['disease_disease', 'rev_disease_protein']
                                 disease_nodes = ['disease', 'gene/protein']
                                 
-                                # print(h_disease['disease_key_id'][0])
-                                # print(h_disease['disease_query_id'][0])
                                 ## new disease not seen in the training set
-                                # for i in h_disease['disease_query_id'][0]:
-                                #     if i.item() not in self.diseases_profile_etypes[etype]:
-                                #         if self.sim_measure == 'all_nodes_profile':
-                                #             self.diseases_profile_etypes[etype][i.item()] = obtain_disease_profile(G, i, disease_etypes, disease_nodes)
-                                #         elif self.sim_measure == 'protein_profile':
-                                #             self.diseases_profile_etypes[etype][i.item()] = obtain_disease_profile(G, i, ['rev_disease_protein'], ['gene/protein'])
-                                #         elif self.sim_measure == 'protein_random_walk':
-                                #             self.diseases_profile_etypes[etype][i.item()] = obtain_protein_random_walk_profile(i, self.num_walks, self.path_length, G, disease_etypes, disease_nodes, self.walk_mode)
-                                #         elif self.sim_measure == 'bert':
-                                #             self.diseases_profile_etypes[etype][i.item()] = torch.Tensor(self.bert_embed[self.id2bertindex[self.disease_dict[i.item()]]])
-                                #         elif self.sim_measure == 'profile+bert':
-                                #             self.diseases_profile_etypes[etype][i.item()] = torch.cat((obtain_disease_profile(G, i, disease_etypes, disease_nodes), torch.Tensor(self.bert_embed[self.id2bertindex[self.disease_dict[i.item()]]])))
                                 for i in h_disease['disease_query_id'][0]:
                                     if i.item() not in self.diseases_profile_etypes[etype]:
-                                        all_nodes_profile = obtain_disease_profile(G, i, disease_etypes, disease_nodes)
-                                        protein_profile = obtain_disease_profile(G, i, ['rev_disease_protein'], ['gene/protein'])
-                                        protein_random_walk = obtain_protein_random_walk_profile(i, self.num_walks, self.path_length, G, disease_etypes, disease_nodes, self.walk_mode)
+                                        if llm is False:
+                                            if self.sim_measure == 'all_nodes_profile':
+                                                self.diseases_profile_etypes[etype][i.item()] = obtain_disease_profile(G, i, disease_etypes, disease_nodes)
+                                            elif self.sim_measure == 'protein_profile':
+                                                self.diseases_profile_etypes[etype][i.item()] = obtain_disease_profile(G, i, ['rev_disease_protein'], ['gene/protein'])
+                                            elif self.sim_measure == 'protein_random_walk':
+                                                self.diseases_profile_etypes[etype][i.item()] = obtain_protein_random_walk_profile(i, self.num_walks, self.path_length, G, disease_etypes, disease_nodes, self.walk_mode)
+                                            elif self.sim_measure == 'bert':
+                                                self.diseases_profile_etypes[etype][i.item()] = torch.Tensor(self.bert_embed[self.id2bertindex[self.disease_dict[i.item()]]])
+                                            elif self.sim_measure == 'profile+bert':
+                                                self.diseases_profile_etypes[etype][i.item()] = torch.cat((obtain_disease_profile(G, i, disease_etypes, disease_nodes), torch.Tensor(self.bert_embed[self.id2bertindex[self.disease_dict[i.item()]]])))
+                                        else:
+                                            all_nodes_profile = obtain_disease_profile(G, i, disease_etypes, disease_nodes)
+                                            protein_profile = obtain_disease_profile(G, i, ['rev_disease_protein'], ['gene/protein'])
+                                            protein_random_walk = obtain_protein_random_walk_profile(i, self.num_walks, self.path_length, G, disease_etypes, disease_nodes, self.walk_mode)
 
-                                        # enhance the profile choice by llm
-                                        best_profile, _ = self.profile_prioritize(G, i, h_disease, disease_nodes, disease_etypes, all_nodes_profile, protein_random_walk)
-                                        if best_profile == 'at':
-                                            self.diseases_profile_etypes[etype][i.item()] = all_nodes_profile
-                                        elif best_profile == 'ps':
-                                            self.diseases_profile_etypes[etype][i.item()] = protein_profile
-                                        elif best_profile == 'ds':
-                                            self.diseases_profile_etypes[etype][i.item()] = protein_random_walk
+                                            # enhance the profile choice by llm
+                                            best_profile, _ = self.profile_prioritize(G, i, h_disease, disease_nodes, disease_etypes, all_nodes_profile, protein_random_walk)
+                                            if best_profile == 'at':
+                                                self.diseases_profile_etypes[etype][i.item()] = all_nodes_profile
+                                            elif best_profile == 'ps':
+                                                self.diseases_profile_etypes[etype][i.item()] = protein_profile
+                                            elif best_profile == 'ds':
+                                                self.diseases_profile_etypes[etype][i.item()] = protein_random_walk
                                 
                                 profile_query = [self.diseases_profile_etypes[etype][i.item()] for i in h_disease['disease_query_id'][0]]
                                 profile_query = torch.cat(profile_query).view(len(profile_query), -1)
@@ -495,7 +493,7 @@ class HeteroRGCNLayer(nn.Module):
         return {ntype : G.nodes[ntype].data['h'] for ntype in G.ntypes}, penalty, self.num_masked
     
 class HeteroRGCN(nn.Module):
-    def __init__(self, G, in_size, hidden_size, out_size, attention, proto, proto_num, sim_measure, bert_measure, agg_measure, num_walks, walk_mode, path_length, split, data_folder, exp_lambda, device, info_dict):
+    def __init__(self, G, in_size, hidden_size, out_size, attention, proto, proto_num, sim_measure, bert_measure, agg_measure, num_walks, walk_mode, path_length, split, data_folder, exp_lambda, device, info_dict, llm):
         super(HeteroRGCN, self).__init__()
 
         if attention:
@@ -509,7 +507,7 @@ class HeteroRGCN(nn.Module):
         nn.init.xavier_uniform_(self.w_rels, gain=nn.init.calculate_gain('relu'))
         rel2idx = dict(zip(G.canonical_etypes, list(range(len(G.canonical_etypes)))))
                
-        self.pred = DistMultPredictor(n_hid = hidden_size, w_rels = self.w_rels, G = G, rel2idx = rel2idx, proto = proto, proto_num = proto_num, sim_measure = sim_measure, bert_measure = bert_measure, agg_measure = agg_measure, num_walks = num_walks, walk_mode = walk_mode, path_length = path_length, split = split, data_folder = data_folder, exp_lambda = exp_lambda, info_dict = info_dict, device = device)
+        self.pred = DistMultPredictor(n_hid = hidden_size, w_rels = self.w_rels, G = G, rel2idx = rel2idx, proto = proto, proto_num = proto_num, sim_measure = sim_measure, bert_measure = bert_measure, agg_measure = agg_measure, num_walks = num_walks, walk_mode = walk_mode, path_length = path_length, split = split, data_folder = data_folder, exp_lambda = exp_lambda, info_dict = info_dict, llm = llm, device = device)
         self.attention = attention
         
         self.hidden_size = hidden_size

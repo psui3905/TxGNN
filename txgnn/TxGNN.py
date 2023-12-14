@@ -78,7 +78,8 @@ class TxGNN:
                                exp_lambda = 0.7,
                                num_walks = 200,
                                walk_mode = 'bit',
-                               path_length = 2):
+                               path_length = 2,
+                               llm = False):
         
         if self.no_kg and proto:
             print('Ablation study on No-KG. No proto learning is used...')
@@ -121,6 +122,7 @@ class TxGNN:
                    exp_lambda = exp_lambda,
                    device = self.device,
                    info_dict = self.id_mapping,
+                   llm = llm
                   ).to(self.device)    
         self.best_model = self.model
         
