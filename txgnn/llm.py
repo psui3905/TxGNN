@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-openai_api_key = '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'
+openai_api_key = ''
 
 
 class Gpt4:
