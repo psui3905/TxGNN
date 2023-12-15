@@ -88,6 +88,8 @@ class DistMultPredictor(nn.Module):
             self.sim_all_etypes = {}
             self.diseaseid2id_etypes = {}
             self.diseases_profile_etypes = {}
+            self.diseases_profile_ps_etypes = {}
+            self.diseases_profile_ds_etypes = {}
             
             disease_etypes = ['disease_disease', 'rev_disease_protein']
             disease_nodes = ['disease', 'gene/protein']
