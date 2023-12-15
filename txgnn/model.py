@@ -217,7 +217,8 @@ class DistMultPredictor(nn.Module):
                                             protein_profile = obtain_disease_profile(G, i, ['rev_disease_protein'], ['gene/protein'])
                                             protein_random_walk = obtain_protein_random_walk_profile(i, self.num_walks, self.path_length, G, disease_etypes, disease_nodes, self.walk_mode)
 
-                                            # enhance the profile choice by llm
+                                            # enhance the profile choice by llm 
+                                            # profile_prioritize(G, i, disease_nodes, disease_etypes, disease_idx, all_nodes_profile, protein_random_walk)
                                             best_profile, _ = self.profile_prioritize(G, i, disease_nodes, disease_etypes, all_nodes_profile, protein_random_walk)
                                             if best_profile == 'at':
                                                 self.diseases_profile_etypes[etype][i.item()] = all_nodes_profile
@@ -311,7 +312,7 @@ class DistMultPredictor(nn.Module):
                 s_l = torch.cat(s_l).reshape(-1,).detach().cpu().numpy()
             return scores, s_l
         
-    def profile_prioritize(self, G, i, disease_nodes, disease_etypes, disease_idx, all_nodes_profile, protein_random_walk):
+    def profile_prioritize(self, G, i, disease_nodes, disease_etypes, all_nodes_profile, protein_random_walk):
         all_node_sig_name, ps_sig_name, ds_sig_name = [], [], []
         # get new disease name
         disease_name = [self.id2name_disease[self.idx2id_disease[i.item()]]] 
