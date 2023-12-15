@@ -1,5 +1,5 @@
 from openai import OpenAI
-
+import openai 
 openai_api_key = ''
 
 
@@ -25,15 +25,20 @@ class Gpt4:
             AT (All-node-types Signature): {at_sig}
             DS (Diffusion Signature): {ds_sig}'''
         }
-        print(prompt['content'])
-        response = self.client.chat.completions.create(
-            model="gpt-4",
-            messages=[prompt],
-            temperature=0.8,
-            max_tokens=1000,
-            top_p=1
-        )
-        return response.choices[0].message.content
+        # print(prompt['content'])
+        while True:
+            try:
+                response = self.client.chat.completions.create(
+                    model="gpt-4",
+                    messages=[prompt],
+                    temperature=0.8,
+                    max_tokens=1000,
+                    top_p=1
+                )
+                return response.choices[0].message.content
+            except openai.APIConnectionError as e:
+                print('Failed to connect... trying again'')
+                pass
     
     def str2idx_sig(self, content):
         choosen_sig = content.split('\n')[0].split(': ')[1].split()[0].lower()
