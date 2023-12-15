@@ -31,20 +31,24 @@ Confidential score: <scale from 0.0 to 1.0, the score of all given signatures sh
                 response = self.client.chat.completions.create(
                     model="gpt-4",
                     messages=[prompt],
-                    temperature=0.3,
+                    temperature=0.5,
                     max_tokens=200,
-                    top_p=0.4
+                    top_p=0.5
                 )
-                print(prompt)
-                print(response.choices[0].message.content)
                 return response.choices[0].message.content
             except openai.APIConnectionError as e:
                 print('Failed to connect... trying again')
                 pass
     
     def str2idx_sig(self, content):
-        choosen_sig = content.split('\n')[0].split(': ')[1].split()[0].lower()
-        score = float(content.split('\n')[1].split(': ')[1])
+        try:
+            choosen_sig = content.split('\n')[0].split(': ')[1].split()[0].lower()
+            score = float(content.split('\n')[1].split(': ')[1])
+        except:
+            print(content)
+            # print(response.choices[0].message.content)
+            choosen_sig = 'at'
+            score = 1.0
         return (choosen_sig, score)
 
 if __name__ == "__main__":
