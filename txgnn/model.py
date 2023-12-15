@@ -100,7 +100,8 @@ class DistMultPredictor(nn.Module):
                     all_disease_ids = torch.where(G.out_degrees(etype=etype) != 0)[0]
                 elif dst == 'disease':
                     all_disease_ids = torch.where(G.in_degrees(etype=etype) != 0)[0]
-                    
+                
+                print(f'Creating {etype} {sim_measure}...')
                 if sim_measure == 'all_nodes_profile':
                     diseases_profile = {i.item(): obtain_disease_profile(G, i, disease_etypes, disease_nodes) for i in all_disease_ids}
                 elif sim_measure == 'protein_profile':
@@ -111,7 +112,7 @@ class DistMultPredictor(nn.Module):
                     diseases_profile = {i.item(): torch.Tensor(self.bert_embed[self.id2bertindex[self.disease_dict[i.item()]]]) for i in all_disease_ids}
                 elif sim_measure == 'profile+bert':
                     diseases_profile = {i.item(): torch.cat((obtain_disease_profile(G, i, disease_etypes, disease_nodes), torch.Tensor(self.bert_embed[self.id2bertindex[self.disease_dict[i.item()]]]))) for i in all_disease_ids}
-                    
+                
                 if self.llm is True:
                     print(f'Creating {etype} PS for LLM usage...')
                     diseases_profile_ps = {i.item(): obtain_disease_profile(G, i, ['rev_disease_protein'], ['gene/protein']) for i in all_disease_ids}
