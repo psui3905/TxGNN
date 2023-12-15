@@ -1,7 +1,6 @@
 from openai import OpenAI
-import openai 
-openai_api_key = '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'
-
+import openai, sys
+openai_api_key = sys.argv[1]
 
 class Gpt4:
     def __init__(self, api_key=openai_api_key):
