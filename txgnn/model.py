@@ -354,12 +354,12 @@ class DistMultPredictor(nn.Module):
         
         # get specific profile context, i.e. protein name in ps sig
         if len(gp_idx) != 0:
-            ps_sig_name = [self.id2name_gp[self.idx2id_gp[i.item()]] for i in gp_idx][:20]
+            ps_sig_name = [self.id2name_gp[self.idx2id_gp[i]] for i in gp_idx][:20]
         if len(disease_idx) != 0:
-            suc_disease_name = [self.id2name_disease[self.idx2id_disease[i.item()]] for i in disease_idx]
+            suc_disease_name = [self.id2name_disease[self.idx2id_disease[i]] for i in disease_idx]
             all_node_sig_name = suc_disease_name[:20] + ps_sig_name
         if len(walk_idx) != 0:
-            ds_sig_name = [self.id2name_gp[self.idx2id_gp[i.item()]] for i in walk_idx][:20]
+            ds_sig_name = [self.id2name_gp[self.idx2id_gp[i]] for i in walk_idx][:20]
         
         result = self.llm_model.query(disease_name, all_node_sig_name, ps_sig_name, ds_sig_name)
         choosen_sig, score = self.llm_model.str2idx_sig(result)
