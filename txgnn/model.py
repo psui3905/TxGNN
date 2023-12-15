@@ -220,6 +220,7 @@ class DistMultPredictor(nn.Module):
                                             # enhance the profile choice by llm 
                                             # profile_prioritize(G, i, disease_nodes, disease_etypes, disease_idx, all_nodes_profile, protein_random_walk)
                                             best_profile, _ = self.profile_prioritize(G, i, disease_nodes, disease_etypes, all_nodes_profile, protein_random_walk)
+                                            print(f"best profile for disease {i.item()} is {best_profile}")
                                             if best_profile == 'at':
                                                 self.diseases_profile_etypes[etype][i.item()] = all_nodes_profile
                                             elif best_profile == 'ps':
