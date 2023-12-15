@@ -341,20 +341,24 @@ class DistMultPredictor(nn.Module):
         disease_idx, pg_idx = torch.split(all_nodes_profile, spliter, dim = 0)
         
         # convert profile idx to kg idx
-        disease_idx = np.squeeze(np.where(disease_idx.detach().cpu().numpy() == 1.))
-        walk_idx = np.squeeze(np.where(protein_random_walk.detach().cpu().numpy() == 1.))
-        gp_idx = np.squeeze(np.where(pg_idx.detach().cpu().numpy() == 1.))
+        disease_idx = np.squeeze(np.where(disease_idx.detach().cpu().numpy() == 1.)).tolist()
+        walk_idx = np.squeeze(np.where(protein_random_walk.detach().cpu().numpy() == 1.)).tolist()
+        gp_idx = np.squeeze(np.where(pg_idx.detach().cpu().numpy() == 1.)).tolist()
         
-        print(f'Number of protein sig: {len(gp_idx)}')
-        print(f'Number of disease profile: {len(disease_idx)}')
-        print(f'Number of random walk sig: {len(walk_idx)}')
+        if type(disease_idx) == int:
+            disease_idx = [disease_idx]
+        if type(walk_idx) == int:
+            walk_idx = [walk_idx]
+        if type(gp_idx) == int:
+            gp_idx = [gp_idx]
+        
         # get specific profile context, i.e. protein name in ps sig
-        if gp_idx.size != 0:
+        if len(gp_idx) != 0:
             ps_sig_name = [self.id2name_gp[self.idx2id_gp[i.item()]] for i in gp_idx][:20]
-        if disease_idx.size != 0:
+        if len(disease_idx) != 0:
             suc_disease_name = [self.id2name_disease[self.idx2id_disease[i.item()]] for i in disease_idx]
             all_node_sig_name = suc_disease_name[:20] + ps_sig_name
-        if walk_idx.size != 0:
+        if len(walk_idx) != 0:
             ds_sig_name = [self.id2name_gp[self.idx2id_gp[i.item()]] for i in walk_idx][:20]
         
         result = self.llm_model.query(disease_name, all_node_sig_name, ps_sig_name, ds_sig_name)
