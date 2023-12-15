@@ -1,6 +1,6 @@
 from openai import OpenAI
 import openai 
-openai_api_key = ''
+openai_api_key = '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'
 
 
 class Gpt4:
@@ -37,7 +37,7 @@ class Gpt4:
                 )
                 return response.choices[0].message.content
             except openai.APIConnectionError as e:
-                print('Failed to connect... trying again'')
+                print('Failed to connect... trying again')
                 pass
     
     def str2idx_sig(self, content):
