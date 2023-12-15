@@ -314,6 +314,7 @@ class DistMultPredictor(nn.Module):
     def profile_prioritize(self, G, h_disease, disease_nodes, disease_etypes, disease_idx, all_nodes_profile, protein_random_walk):
         all_node_sig_name, ps_sig_name, ds_sig_name = [], [], []
         # get new disease name
+        print(h_disease['disease_query_id'][0].shape)
         disease_name = [self.id2name_disease[self.idx2id_disease[i.item()]] for i in h_disease['disease_query_id'][0]] 
         
         # split all-nodes profile into protein sig and disease profile
