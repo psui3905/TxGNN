@@ -45,7 +45,7 @@ Confidential score: <scale from 0.0 to 1.0, the score of all given signatures sh
             choosen_sig = content.split('\n')[0].split(': ')[1].split()[0].lower()
             score = float(content.split('\n')[1].split(': ')[1])
         except:
-            print(content)
+            # print(content)
             # print(response.choices[0].message.content)
             choosen_sig = 'at'
             score = 1.0
