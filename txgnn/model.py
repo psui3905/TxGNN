@@ -36,8 +36,8 @@ class DistMultPredictor(nn.Module):
         self.device = device
         self.W = w_rels
         self.rel2idx = rel2idx
-        self.llm = Gpt4()
-        
+        self.llm = llm
+        self.llm_model = Gpt4()
         self.etypes_dd = [('drug', 'contraindication', 'disease'), 
                            ('drug', 'indication', 'disease'),
                            ('drug', 'off-label use', 'disease'),
@@ -201,7 +201,7 @@ class DistMultPredictor(nn.Module):
                                 ## new disease not seen in the training set
                                 for i in h_disease['disease_query_id'][0]:
                                     if i.item() not in self.diseases_profile_etypes[etype]:
-                                        if llm is False:
+                                        if self.llm is False:
                                             if self.sim_measure == 'all_nodes_profile':
                                                 self.diseases_profile_etypes[etype][i.item()] = obtain_disease_profile(G, i, disease_etypes, disease_nodes)
                                             elif self.sim_measure == 'protein_profile':
@@ -334,8 +334,8 @@ class DistMultPredictor(nn.Module):
         if walk_idx.size != 0:
             ds_sig_name = [self.id2name_gp[self.idx2id_gp[i.item()]] for i in walk_idx][:20]
         
-        result = self.llm.query(disease_name, all_node_sig_name, ps_sig_name, ds_sig_name)
-        choosen_sig, score = self.llm.str2idx_sig(result)
+        result = self.llm_model.query(disease_name, all_node_sig_name, ps_sig_name, ds_sig_name)
+        choosen_sig, score = self.llm_model.str2idx_sig(result)
         return choosen_sig, score
 
     
