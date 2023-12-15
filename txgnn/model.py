@@ -110,9 +110,16 @@ class DistMultPredictor(nn.Module):
                 elif sim_measure == 'profile+bert':
                     diseases_profile = {i.item(): torch.cat((obtain_disease_profile(G, i, disease_etypes, disease_nodes), torch.Tensor(self.bert_embed[self.id2bertindex[self.disease_dict[i.item()]]]))) for i in all_disease_ids}
                     
+                if self.llm is True:
+                    diseases_profile_ps = {i.item(): obtain_disease_profile(G, i, ['rev_disease_protein'], ['gene/protein']) for i in all_disease_ids}
+                    diseases_profile_ds = {i.item(): obtain_protein_random_walk_profile(i, num_walks, path_length, G, disease_etypes, disease_nodes, walk_mode) for i in all_disease_ids}
+                    self.diseases_profile_ps_etypes[etype] = diseases_profile_ps
+                    self.diseases_profile_ds_etypes[etype] = diseases_profile_ds
+                    
                 diseaseid2id = dict(zip(all_disease_ids.detach().cpu().numpy(), range(len(all_disease_ids))))
                 disease_profile_tensor = torch.stack([diseases_profile[i.item()] for i in all_disease_ids])
                 sim_all = sim_matrix(disease_profile_tensor, disease_profile_tensor)
+                
                 
                 self.sim_all_etypes[etype] = sim_all
                 self.diseaseid2id_etypes[etype] = diseaseid2id
@@ -197,7 +204,7 @@ class DistMultPredictor(nn.Module):
                                 
                                 disease_etypes = ['disease_disease', 'rev_disease_protein']
                                 disease_nodes = ['disease', 'gene/protein']
-                                
+                                best_profile = 'at'
                                 ## new disease not seen in the training set
                                 for i in h_disease['disease_query_id'][0]:
                                     if i.item() not in self.diseases_profile_etypes[etype]:
@@ -221,19 +228,25 @@ class DistMultPredictor(nn.Module):
                                             # profile_prioritize(G, i, disease_nodes, disease_etypes, disease_idx, all_nodes_profile, protein_random_walk)
                                             best_profile, _ = self.profile_prioritize(G, i, disease_nodes, disease_etypes, all_nodes_profile, protein_random_walk)
                                             print(f"best profile for disease {i.item()} is {best_profile}")
-                                            if best_profile == 'at':
-                                                self.diseases_profile_etypes[etype][i.item()] = all_nodes_profile
-                                            elif best_profile == 'ps':
+                                            if best_profile == 'ps':
                                                 self.diseases_profile_etypes[etype][i.item()] = protein_profile
                                             elif best_profile == 'ds':
                                                 self.diseases_profile_etypes[etype][i.item()] = protein_random_walk
+                                            else:
+                                                best_profile = 'at'
+                                                self.diseases_profile_etypes[etype][i.item()] = all_nodes_profile
                                 
                                 profile_query = [self.diseases_profile_etypes[etype][i.item()] for i in h_disease['disease_query_id'][0]]
                                 profile_query = torch.cat(profile_query).view(len(profile_query), -1)
 
-                                profile_keys = [self.diseases_profile_etypes[etype][i.item()] for i in h_disease['disease_key_id'][0]]
+                                if best_profile == 'ps':
+                                    profile_keys = [self.diseases_profile_ps_etypes[etype][i.item()] for i in h_disease['disease_key_id'][0]]
+                                elif best_profile == 'ds':
+                                    profile_keys = [self.diseases_profile_ds_etypes[etype][i.item()] for i in h_disease['disease_key_id'][0]]
+                                else:
+                                    profile_keys = [self.diseases_profile_etypes[etype][i.item()] for i in h_disease['disease_key_id'][0]]
+                                
                                 profile_keys = torch.cat(profile_keys).view(len(profile_keys), -1)
-
                                 # print(profile_query.shape)
                                 # print(profile_keys.shape)
                                 
