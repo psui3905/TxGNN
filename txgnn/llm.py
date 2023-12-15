@@ -35,7 +35,7 @@ Confidential score: <scale from 0.0 to 1.0, the score of all given signatures sh
                     max_tokens=1000,
                     top_p=0.5
                 )
-                print(response.choices[0].message.content)
+                # print(response.choices[0].message.content)
                 return response.choices[0].message.content
             except openai.APIConnectionError as e:
                 print('Failed to connect... trying again')
