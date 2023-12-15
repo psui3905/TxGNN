@@ -113,9 +113,9 @@ class DistMultPredictor(nn.Module):
                     diseases_profile = {i.item(): torch.cat((obtain_disease_profile(G, i, disease_etypes, disease_nodes), torch.Tensor(self.bert_embed[self.id2bertindex[self.disease_dict[i.item()]]]))) for i in all_disease_ids}
                     
                 if self.llm is True:
-                    print('Creating protein profile for LLM usage...')
+                    print(f'Creating {etype} PS for LLM usage...')
                     diseases_profile_ps = {i.item(): obtain_disease_profile(G, i, ['rev_disease_protein'], ['gene/protein']) for i in all_disease_ids}
-                    print('Creating random walk profile for LLM usage...')
+                    print(f'Creating {etype} DS for LLM usage...')
                     diseases_profile_ds = {i.item(): obtain_protein_random_walk_profile(i, num_walks, path_length, G, disease_etypes, disease_nodes, walk_mode) for i in all_disease_ids}
                     self.diseases_profile_ps_etypes[etype] = diseases_profile_ps
                     self.diseases_profile_ds_etypes[etype] = diseases_profile_ds
@@ -345,16 +345,16 @@ class DistMultPredictor(nn.Module):
         walk_idx = np.squeeze(np.where(protein_random_walk.detach().cpu().numpy() == 1.))
         gp_idx = np.squeeze(np.where(pg_idx.detach().cpu().numpy() == 1.))
         
+        print(f'Number of protein sig: {len(gp_idx)}')
+        print(f'Number of disease profile: {len(disease_idx)}')
+        print(f'Number of random walk sig: {len(walk_idx)}')
         # get specific profile context, i.e. protein name in ps sig
         if gp_idx.size != 0:
-            gp_idx = list(set(gp_idx))
             ps_sig_name = [self.id2name_gp[self.idx2id_gp[i.item()]] for i in gp_idx][:20]
         if disease_idx.size != 0:
-            disease_idx = list(set(disease_idx))
             suc_disease_name = [self.id2name_disease[self.idx2id_disease[i.item()]] for i in disease_idx]
             all_node_sig_name = suc_disease_name[:20] + ps_sig_name
         if walk_idx.size != 0:
-            walk_idx = list(set(walk_idx))
             ds_sig_name = [self.id2name_gp[self.idx2id_gp[i.item()]] for i in walk_idx][:20]
         
         result = self.llm_model.query(disease_name, all_node_sig_name, ps_sig_name, ds_sig_name)
