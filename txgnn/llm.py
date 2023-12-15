@@ -31,10 +31,11 @@ class Gpt4:
                 response = self.client.chat.completions.create(
                     model="gpt-4",
                     messages=[prompt],
-                    temperature=0.8,
+                    temperature=0.5,
                     max_tokens=1000,
-                    top_p=1
+                    top_p=0.5
                 )
+                print(response.choices[0].message.content)
                 return response.choices[0].message.content
             except openai.APIConnectionError as e:
                 print('Failed to connect... trying again')
