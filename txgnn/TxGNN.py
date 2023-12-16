@@ -134,7 +134,7 @@ class TxGNN:
         self.G = self.G.to('cpu')
         print('Creating minibatch pretraining dataloader...')
         train_eid_dict = {etype: self.G.edges(form = 'eid', etype =  etype) for etype in self.G.canonical_etypes}
-        # sampler = dgl.dataloading.MultiLayerFullNeighborSampler(2)
+        sampler = dgl.dataloading.MultiLayerFullNeighborSampler(2)
         # dataloader = dgl.dataloading.EdgeDataLoader(
         #     self.G, train_eid_dict, sampler,
         #     negative_sampler=Minibatch_NegSampler(self.G, 1, 'fix_dst'),
@@ -146,7 +146,6 @@ class TxGNN:
         # new change in dgl-cu118
         sampler = dgl.dataloading.as_edge_prediction_sampler(
             sampler, exclude='reverse_id',
-            reverse_eids=reverse_eids,
             negative_sampler=Minibatch_NegSampler(self.G, 1, 'fix_dst'))
         
         dataloader = dgl.dataloading.DataLoader(

@@ -25,10 +25,10 @@ TxGNN.model_initialize(n_hid = 100, # number of hidden dimensions
                       path_length = 2, # for protein_random_walk sim_measure, define path length
                       llm = True)
 
-TxGNN.pretrain(n_epoch = 2, 
-               learning_rate = 1e-3,
-               batch_size = 1024, 
-               train_print_per_n = 20)
+#TxGNN.pretrain(n_epoch = 2, 
+#               learning_rate = 1e-3,
+#               batch_size = 1024, 
+#               train_print_per_n = 20)
 
 TxGNN.finetune(n_epoch = 500, 
                learning_rate = 5e-4,
