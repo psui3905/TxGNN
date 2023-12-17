@@ -145,7 +145,7 @@ class TxGNN:
         
         # new change in dgl-cu118
         sampler = dgl.dataloading.as_edge_prediction_sampler(
-            sampler, exclude='reverse_id',
+            sampler,
             negative_sampler=Minibatch_NegSampler(self.G, 1, 'fix_dst'))
         
         dataloader = dgl.dataloading.DataLoader(

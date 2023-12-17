@@ -29,7 +29,7 @@ Confidential score: <scale from 0.0 to 1.0, the score of all given signatures sh
         while True:
             try:
                 response = self.client.chat.completions.create(
-                    model="gpt-4",
+                    model="gpt-3.5-turbo",
                     messages=[prompt],
                     temperature=0.5,
                     max_tokens=200,
