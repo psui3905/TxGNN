@@ -21,16 +21,16 @@ TxGNN.model_initialize(n_hid = 100, # number of hidden dimensions
                       attention = False, # use attention layer (if use graph XAI, we turn this to false)
                       sim_measure = 'all_nodes_profile', # disease signature, choose from ['all_nodes_profile', 'protein_profile', 'protein_random_walk']
                       agg_measure = 'rarity', # how to aggregate sim disease emb with target disease emb, choose from ['rarity', 'avg']
-                      num_walks = 200, # for protein_random_walk sim_measure, define number of sampled walks
+                      num_walks = 20, # for protein_random_walk sim_measure, define number of sampled walks
                       path_length = 2, # for protein_random_walk sim_measure, define path length
                       llm = True)
 
-TxGNN.pretrain(n_epoch = 2, 
-              learning_rate = 1e-3,
-              batch_size = 1024, 
-              train_print_per_n = 20)
+# TxGNN.pretrain(n_epoch = 2, 
+#               learning_rate = 1e-3,
+#               batch_size = 1024, 
+#               train_print_per_n = 20)
 
-#TxGNN.save_model('./gpt4_pretrain_2')
+# TxGNN.save_model('./gpt4_pretrain_2')
 
 TxGNN.finetune(n_epoch = 30, 
                learning_rate = 5e-4,

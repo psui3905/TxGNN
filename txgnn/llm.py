@@ -1,10 +1,13 @@
 from openai import OpenAI
+from multiprocessing import Lock
 import openai, sys
+
 openai_api_key = sys.argv[1]
+lock = Lock()
 
 class Gpt4:
     def __init__(self, api_key=openai_api_key):
-        self.client = OpenAI(api_key=api_key)
+        self.api_key = api_key
 
     def query(self, disease, ps_sig, at_sig, ds_sig):
         prompt = {
@@ -28,13 +31,15 @@ Confidential score: <scale from 0.0 to 1.0, the score of all given signatures sh
         # print(prompt['content'])
         while True:
             try:
-                response = self.client.chat.completions.create(
-                    model="gpt-4",
-                    messages=[prompt],
-                    temperature=0.5,
-                    max_tokens=200,
-                    top_p=0.5
-                )
+                with lock:
+                    client = OpenAI(api_key=self.api_key)
+                    response = client.chat.completions.create(
+                        model="gpt-4",
+                        messages=[prompt],
+                        temperature=0.5,
+                        max_tokens=200,
+                        top_p=0.5
+                    )
                 return response.choices[0].message.content
             except openai.APIConnectionError as e:
                 print('Failed to connect... trying again')

@@ -204,6 +204,7 @@ class TxGNN:
                         macro_auroc,
                         macro_auprc
                     ))
+                    
         self.best_model = copy.deepcopy(self.model)
         
     def finetune(self, n_epoch = 500, 
