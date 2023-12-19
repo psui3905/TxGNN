@@ -20,6 +20,7 @@ from .graphmask.multiple_inputs_layernorm_linear import MultipleInputsLayernormL
 from .graphmask.squeezer import Squeezer
 from .graphmask.sigmoid_penalty import SoftConcrete
 from .llm import Gpt4
+from .google_llm import Gemini, PaLM2
 
 class DistMultPredictor(nn.Module):
     def __init__(self, n_hid, w_rels, G, rel2idx, proto, proto_num, sim_measure, bert_measure, agg_measure, num_walks, walk_mode, path_length, split, data_folder, exp_lambda, info_dict, llm, device):
@@ -37,7 +38,7 @@ class DistMultPredictor(nn.Module):
         self.W = w_rels
         self.rel2idx = rel2idx
         self.llm = llm
-        self.llm_model = Gpt4()
+        self.llm_model = Gpt4() # Gemini() # PaLM2()
         self.etypes_dd = [('drug', 'contraindication', 'disease'), 
                            ('drug', 'indication', 'disease'),
                            ('drug', 'off-label use', 'disease'),
