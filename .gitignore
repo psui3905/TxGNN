@@ -7,6 +7,9 @@ data/
 # C extensions
 *.so
 
+# README
+README.md
+
 # Distribution / packaging
 .Python
 build/

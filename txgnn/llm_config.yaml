@@ -1,0 +1,27 @@
+gemini:
+  api_key: 'xxx'
+  model: 'gemini-pro'
+  temperature: 0.3
+
+palm2:
+  api_key: 'xxx'
+  model: 'models/palm2-large-pubmed'
+  temperature: 0.3
+
+gpt:
+  api_key: 'xxx'
+  gpt4:
+    model: 'gpt-4'
+    temperature: 0.5
+    top_p: 0.5
+  gpt-4-1106-preview:
+    model: 'gpt-4-1106-preview'
+    temperature: 0.5
+    top_p: 0.5
+
+max_output_tokens: 200
+instructions: 'Suppose you are an expert in the interdisciplinary field of pharmaceutical science and AI. Given several signature profiles of the query disease, your job is to determine the best signature that can be used as an auxiliary disease embedding for drug repurposing.'
+question: 'Your answer should only includes:
+    Most informative signature: <the best signature name>
+    Confidential score: <scale from 0.0 to 1.0, the score of all given signatures should sum to 1.0>'
+

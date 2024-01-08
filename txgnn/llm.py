@@ -8,24 +8,24 @@ lock = Lock()
 class Gpt4:
     def __init__(self, api_key=openai_api_key):
         self.api_key = api_key
-
+    
     def query(self, disease, ps_sig, at_sig, ds_sig):
         prompt = {
             "role": "user",
             "content": f'''
-Suppose you are an expert in the interdisciplinary field of pharmaceutical science and AI.
-Given several signature profiles of the query disease, your job is to determine the best signature that
-can be used as an auxiliary disease embedding for drug repurposing.
+                Suppose you are an expert in the interdisciplinary field of pharmaceutical science and AI.
+                Given several signature profiles of the query disease, your job is to determine the best signature that
+                can be used as an auxiliary disease embedding for drug repurposing.
 
-Here is the query disease and available signature profiles:
-Disease info: {disease}
-PS  (Protein Signature): {ps_sig}
-AT  (All-node-types Signature): {at_sig}
-DS  (Diffusion Signature): {ds_sig}
+                Here is the query disease and available signature profiles:
+                Disease info: {disease}
+                PS  (Protein Signature): {ps_sig}
+                AT  (All-node-types Signature): {at_sig}
+                DS  (Diffusion Signature): {ds_sig}
 
-Your answer should only answer:
-Most informative signature: <the best signature name>
-Confidential score: <scale from 0.0 to 1.0, the score of all given signatures should sum to 1.0>'''
+                Your answer should only answer:
+                Most informative signature: <the best signature name>
+                Confidential score: <scale from 0.0 to 1.0, the score of all given signatures should sum to 1.0>'''
         }
         
         # print(prompt['content'])
