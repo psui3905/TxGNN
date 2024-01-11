@@ -2,17 +2,15 @@ import subprocess
 import sys
 import os
 
-api_key = sys.argv[1]
-
 os.environ['model'] = ''
 os.environ['prompt'] = ''
-os.environ['api_key'] = api_key
+os.environ['api_key'] = ''
 
 # Path to your Python 3.9 interpreter '/path/to/python3.9/bin/python'
 python39_interpreter = '/opt/conda/envs/py39/bin/python'
 
 # Path to the Python 3.9 script '/path/to/python39_script.py'
-python39_script = '/home/qw2387/TxGNN/txgnn/llmplus.py'
+python39_script = '~/TxGNN/txgnn/llmplus.py'
 
 class Gemini:
     def query(self, disease, ps_sig, at_sig, ds_sig):

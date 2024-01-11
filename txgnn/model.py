@@ -19,7 +19,7 @@ from .utils import sim_matrix, exponential, obtain_disease_profile, obtain_prote
 from .graphmask.multiple_inputs_layernorm_linear import MultipleInputsLayernormLinear
 from .graphmask.squeezer import Squeezer
 from .graphmask.sigmoid_penalty import SoftConcrete
-from .llm import Gpt4
+from .llm import LLM_Enhancement
 from .google_llm import Gemini, PaLM2
 
 class DistMultPredictor(nn.Module):
@@ -38,7 +38,7 @@ class DistMultPredictor(nn.Module):
         self.W = w_rels
         self.rel2idx = rel2idx
         self.llm = llm
-        self.llm_model = Gpt4() # Gemini() # PaLM2()
+        self.llm_model = LLM_Enhancement() # Gemini() # PaLM2()
         self.etypes_dd = [('drug', 'contraindication', 'disease'), 
                            ('drug', 'indication', 'disease'),
                            ('drug', 'off-label use', 'disease'),
@@ -243,56 +243,62 @@ class DistMultPredictor(nn.Module):
                                             else:
                                                 best_profile = 'at'
                                                 self.diseases_profile_etypes[etype][i.item()] = all_nodes_profile
+                                if self.llm:
+                                    profile_keys_ps = [self.diseases_profile_ps_etypes[etype][i.item()] for i in h_disease['disease_key_id'][0]]
+                                    profile_keys_ds = [self.diseases_profile_ds_etypes[etype][i.item()] for i in h_disease['disease_key_id'][0]]
+                                    profile_keys_at = [self.diseases_profile_etypes[etype][i.item()] for i in h_disease['disease_key_id'][0]]
+                                    profile_keys_ps = torch.cat(profile_keys_ps).view(len(profile_keys_ps), -1)
+                                    profile_keys_ds = torch.cat(profile_keys_ds).view(len(profile_keys_ds), -1)
+                                    profile_keys_at = torch.cat(profile_keys_at).view(len(profile_keys_at), -1)
+                                
+                                    # profile_query = [self.diseases_profile_etypes[etype][i.item()] for i in h_disease['disease_query_id'][0]]
+                                    # profile_query = torch.cat(profile_query).view(len(profile_query), -1)
+                                    profile_query_ps, profile_query_ds, profile_query_at = [], [], []
+                                    profile_order_dic = {}
+                                    
+                                    for i in h_disease['disease_query_id'][0]:
+                                        profile = self.diseases_profile_etypes[etype][i.item()]
+                                        # print(profile.shape)
+                                        # print(profile_keys_ps.shape)
+                                        if profile.shape[0] == profile_keys_ps.shape[1]:
+                                            profile_query_ps.append(profile)
+                                            profile_order_dic[i] = ('ps', len(profile_query_ps) - 1)
+                                        elif profile.shape[0] == profile_keys_ds.shape[1]:
+                                            profile_query_ds.append(profile)
+                                            profile_order_dic[i] = ('ds', len(profile_query_ds) - 1)
+                                        elif profile.shape[0] == profile_keys_at.shape[1]:
+                                            profile_query_at.append(profile)
+                                            profile_order_dic[i] = ('at', len(profile_query_at) - 1)
+                                
+                                    if len(profile_query_ps) != 0:
+                                        profile_query_ps = torch.cat(profile_query_ps).view(len(profile_query_ps), -1)
+                                        sim_ps = sim_matrix(profile_query_ps, profile_keys_ps)
+                                    
+                                    if len(profile_query_ds) != 0:
+                                        profile_query_ds = torch.cat(profile_query_ds).view(len(profile_query_ds), -1)
+                                        sim_ds = sim_matrix(profile_query_ds, profile_keys_ds)
+                                    
+                                    if len(profile_query_at) != 0:
+                                        profile_query_at = torch.cat(profile_query_at).view(len(profile_query_at), -1)
+                                        sim_at = sim_matrix(profile_query_at, profile_keys_at)
+                                    
+                                    sim = []
+                                    for p, q in profile_order_dic.items():
+                                        if q[0] == 'ps':
+                                            sim.append(sim_ps[q[1]])
+                                        elif q[0] == 'ds':
+                                            sim.append(sim_ds[q[1]])
+                                        elif q[0] == 'at':
+                                            sim.append(sim_at[q[1]])
+                                    # size should be (num of query, num of keys), e.g. torch.Size([131, 1010])
+                                    sim = torch.cat(sim).view(len(sim), -1)
+                                else:
+                                    profile_query = [self.diseases_profile_etypes[etype][i.item()] for i in h_disease['disease_query_id'][0]]
+                                    profile_query = torch.cat(profile_query).view(len(profile_query), -1)
 
-                                profile_keys_ps = [self.diseases_profile_ps_etypes[etype][i.item()] for i in h_disease['disease_key_id'][0]]
-                                profile_keys_ds = [self.diseases_profile_ds_etypes[etype][i.item()] for i in h_disease['disease_key_id'][0]]
-                                profile_keys_at = [self.diseases_profile_etypes[etype][i.item()] for i in h_disease['disease_key_id'][0]]
-                                
-                                profile_keys_ps = torch.cat(profile_keys_ps).view(len(profile_keys_ps), -1)
-                                profile_keys_ds = torch.cat(profile_keys_ds).view(len(profile_keys_ds), -1)
-                                profile_keys_at = torch.cat(profile_keys_at).view(len(profile_keys_at), -1)
-                                
-                                # profile_query = [self.diseases_profile_etypes[etype][i.item()] for i in h_disease['disease_query_id'][0]]
-                                # profile_query = torch.cat(profile_query).view(len(profile_query), -1)
-                                profile_query_ps, profile_query_ds, profile_query_at = [], [], []
-                                profile_order_dic = {}
-                                
-                                for i in h_disease['disease_query_id'][0]:
-                                    profile = self.diseases_profile_etypes[etype][i.item()]
-                                    # print(profile.shape)
-                                    # print(profile_keys_ps.shape)
-                                    if profile.shape[0] == profile_keys_ps.shape[1]:
-                                        profile_query_ps.append(profile)
-                                        profile_order_dic[i] = ('ps', len(profile_query_ps) - 1)
-                                    elif profile.shape[0] == profile_keys_ds.shape[1]:
-                                        profile_query_ds.append(profile)
-                                        profile_order_dic[i] = ('ds', len(profile_query_ds) - 1)
-                                    elif profile.shape[0] == profile_keys_at.shape[1]:
-                                        profile_query_at.append(profile)
-                                        profile_order_dic[i] = ('at', len(profile_query_at) - 1)
-                                
-                                if len(profile_query_ps) != 0:
-                                    profile_query_ps = torch.cat(profile_query_ps).view(len(profile_query_ps), -1)
-                                    sim_ps = sim_matrix(profile_query_ps, profile_keys_ps)
-                                
-                                if len(profile_query_ds) != 0:
-                                    profile_query_ds = torch.cat(profile_query_ds).view(len(profile_query_ds), -1)
-                                    sim_ds = sim_matrix(profile_query_ds, profile_keys_ds)
-                                
-                                if len(profile_query_at) != 0:
-                                    profile_query_at = torch.cat(profile_query_at).view(len(profile_query_at), -1)
-                                    sim_at = sim_matrix(profile_query_at, profile_keys_at)
-                                
-                                sim = []
-                                for p, q in profile_order_dic.items():
-                                    if q[0] == 'ps':
-                                        sim.append(sim_ps[q[1]])
-                                    elif q[0] == 'ds':
-                                        sim.append(sim_ds[q[1]])
-                                    elif q[0] == 'at':
-                                        sim.append(sim_at[q[1]])
-                                # size should be (num of query, num of keys), e.g. torch.Size([131, 1010])
-                                sim = torch.cat(sim).view(len(sim), -1)
+                                    profile_keys = [self.diseases_profile_etypes[etype][i.item()] for i in h_disease['disease_key_id'][0]]
+                                    profile_keys = torch.cat(profile_keys).view(len(profile_keys), -1)
+                                    sim = sim_matrix(profile_query, profile_keys)
                                 # print(f'New sim shape is {sim.shape}')
                                 
                             if src_h.shape[0] == src_h_keys.shape[0]:
@@ -369,7 +375,7 @@ class DistMultPredictor(nn.Module):
                 s_l = torch.cat(s_l).reshape(-1,).detach().cpu().numpy()
             return scores, s_l
         
-    def profile_prioritize(self, G, i, disease_nodes, disease_etypes, all_nodes_profile, protein_random_walk):
+    def profile_prioritize(self, G, i, disease_nodes, disease_etypes, all_nodes_profile, protein_random_walk, llm_name='gpt-4'):
         all_node_sig_name, ps_sig_name, ds_sig_name = [], [], []
         # get new disease name
         disease_name = [self.id2name_disease[self.idx2id_disease[i.item()]]] 
@@ -397,10 +403,10 @@ class DistMultPredictor(nn.Module):
             suc_disease_name = [self.id2name_disease[self.idx2id_disease[i]] for i in disease_idx]
             all_node_sig_name = suc_disease_name[:20] + ps_sig_name
         if len(walk_idx) != 0:
-            ds_sig_name = [self.id2name_gp[self.idx2id_gp[i]] for i in walk_idx][:20]
+            ds_sig_name = [self.id2name_gp[self.idx2id_gp[i]] for i in walk_idx][:30]
         
         # print(f'Querying LLM for disease {disease_name}...')
-        result = self.llm_model.query(disease_name, all_node_sig_name, ps_sig_name, ds_sig_name)
+        result = self.llm_model.sig_suggestion(disease_name, llm_name, all_node_sig_name, ps_sig_name, ds_sig_name)
         choosen_sig, score = self.llm_model.str2idx_sig(result)
         # print(f"LLM chooses '{choosen_sig}' with score {score}")
         return choosen_sig, score

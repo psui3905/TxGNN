@@ -21,9 +21,9 @@ def PaLM2(input_prompt):
     completion = generativeai.generate_text(
         model='models/text-bison-001',
         prompt=input_prompt,
-        temperature=0.1,
+        temperature=0.6,
         # The maximum length of the response
-        max_output_tokens=800,
+        max_output_tokens=200,
     )    
     
     return completion.result
@@ -38,8 +38,8 @@ def Gemini(input_prompt):
     completion = gemini_model.generate_content(
         input_prompt,
         generation_config={
-            'temperature': 0.1,
-            'max_output_tokens': 800
+            'temperature': 0.6,
+            'max_output_tokens': 200
         }
     )
     return completion.text
