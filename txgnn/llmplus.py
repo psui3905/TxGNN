@@ -3,12 +3,15 @@
 
 import sys
 import os
+import yaml
 
 prompt = os.getenv('prompt')
 
 model = os.getenv('model')
 
 API_KEY = os.getenv('api_key')
+
+args = yaml.load(open('/root/TxGNN/txgnn/llm_config.yaml', 'r'), Loader=yaml.FullLoader)
 
 def PaLM2(input_prompt):
     import google.generativeai as generativeai
@@ -19,11 +22,11 @@ def PaLM2(input_prompt):
     palm_model = palm_models[0].name
 
     completion = generativeai.generate_text(
-        model='models/text-bison-001',
+        model=args['palm2']['model'],
         prompt=input_prompt,
-        temperature=0.6,
+        temperature=args['palm2']['temperature'],
         # The maximum length of the response
-        max_output_tokens=200,
+        max_output_tokens=args['max_output_tokens'],
     )    
     
     return completion.result
@@ -33,13 +36,13 @@ def Gemini(input_prompt):
 
     generativeai.configure(api_key=API_KEY)
 
-    gemini_model = generativeai.GenerativeModel(model_name='gemini-pro')
+    gemini_model = generativeai.GenerativeModel(model_name=args['gemini']['model'])
 
     completion = gemini_model.generate_content(
         input_prompt,
         generation_config={
-            'temperature': 0.6,
-            'max_output_tokens': 200
+            'temperature': args['gemini']['temperature'],
+            'max_output_tokens': args['max_output_tokens'],
         }
     )
     return completion.text

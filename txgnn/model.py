@@ -375,7 +375,7 @@ class DistMultPredictor(nn.Module):
                 s_l = torch.cat(s_l).reshape(-1,).detach().cpu().numpy()
             return scores, s_l
         
-    def profile_prioritize(self, G, i, disease_nodes, disease_etypes, all_nodes_profile, protein_random_walk, llm_name='gpt-4'):
+    def profile_prioritize(self, G, i, disease_nodes, disease_etypes, all_nodes_profile, protein_random_walk, llm_name='palm2'):
         all_node_sig_name, ps_sig_name, ds_sig_name = [], [], []
         # get new disease name
         disease_name = [self.id2name_disease[self.idx2id_disease[i.item()]]] 
@@ -401,7 +401,7 @@ class DistMultPredictor(nn.Module):
             ps_sig_name = [self.id2name_gp[self.idx2id_gp[i]] for i in gp_idx][:20]
         if len(disease_idx) != 0:
             suc_disease_name = [self.id2name_disease[self.idx2id_disease[i]] for i in disease_idx]
-            all_node_sig_name = suc_disease_name[:20] + ps_sig_name
+            all_node_sig_name = ps_sig_name + suc_disease_name[:20]
         if len(walk_idx) != 0:
             ds_sig_name = [self.id2name_gp[self.idx2id_gp[i]] for i in walk_idx][:30]
         

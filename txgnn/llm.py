@@ -8,16 +8,15 @@ os.environ['model'] = ''
 os.environ['prompt'] = ''
 os.environ['api_key'] = ''
 
-question = '''Which signature profile is most informative for the query disease? (give a short reasoning for your answer)'''
+question = '''Which signature profile is the best as disease embedding for the query disease? (give a short reasoning)'''
 
 final_question ='''Provide your answer in the format (nothing else should be included in your answer): 
-Most informative signature: [Choose from PS, AT, DS]
+Most informative signature: [Choose from (1), (2), (3)]
 Confidential score: [Assign a score from 0.0 to 1.0 for each signature, ensuring the total score across all signatures sums to 1.0]'''
 
-refinement = '''Which signature profile is most informative for the query disease? Solve them in a step-by-step fashion, starting by summarizing the available information. 
+refinement = '''Which signature profile is most informative for the query disease and can be used as disease embedding? Solve them in a step-by-step fashion, starting by summarizing the available information. 
 Output a single option from the three signature options as the final answer. We provide several possible reasonings for the question. 
-Some of them maybe correct and some incorrect. You can use the best correct arguments from these reasonings. 
-Beware of wrong reasoning and do not repeat wrong reasoning.'''
+Some of them maybe correct and some incorrect. Beware of wrong reasoning and do not repeat wrong reasoning.'''
 
 
 
@@ -34,21 +33,30 @@ class LLM_Enhancement:
     def sig_suggestion(self, disease, llm, ps_sig, at_sig, ds_sig):
         info = f'''Here is the query disease and available signature profiles:
         Disease info: {disease}
-        Protein Signature (PS): {ps_sig}
-        All-node-types Signature (AT): {at_sig}
-        Diffusion Signature (DS): {ds_sig}'''
+        (1): {ps_sig}
+        (2): {at_sig}
+        (3): {ds_sig}'''
         
         return self.ensemble_refine(info, model=llm, ensemble=3)
         
-    def ensemble_refine(self, info, model='gpt-4-1106-preview', ensemble=3):
+    def ensemble_refine(self, info, model='palm2', ensemble=3):
         explore_prompt = self.llm_args['instructions'] + '\n' + info + '\n' + question
         reasons = []
         for i in range(ensemble):
-            reasons.append(self.gpt(prompt=explore_prompt, model=model))
-        reason_prompt = [str(i+1) + ' reasoning: ' + reason for i, reason in enumerate(reasons)]
+            if model == 'gemini':
+                reasons.append(self.gemini(prompt=explore_prompt))
+            elif model == 'palm2':
+                reasons.append(self.palm2(prompt=explore_prompt))
+            else:
+                reasons.append(self.gpt(prompt=explore_prompt, model=model))
+        reason_prompt = ['Reasoning: ' + reason for i, reason in enumerate(reasons)]
         reason_prompt = '\n'.join(reason_prompt)
         refine_prompt = self.llm_args['instructions'] + '\n' + info + '\n' + refinement + '\n' + reason_prompt + '\n' + final_question
-        # print(refine_prompt)
+        print(refine_prompt)
+        if model == 'gemini':
+            return self.gemini(prompt=refine_prompt)
+        elif model == 'palm2':
+            return self.palm2(prompt=refine_prompt)
         return self.gpt(prompt=refine_prompt, model=model)
     
     def gpt(self, prompt, model='gpt-4'):
@@ -75,15 +83,17 @@ class LLM_Enhancement:
     def gemini(self, prompt):
         os.environ['prompt'] = prompt
         os.environ['model'] = 'gemini'
+        os.environ['api_key'] = self.llm_args['gemini']['api_key']
         result = subprocess.run(self.command, capture_output=True, text=True)
-        print(result.stderr)
+        # print(result.stderr)
         return result.stdout
         
     def palm2(self, prompt):
         os.environ['prompt'] = prompt
-        os.environ['model'] = 'palm2'
+        os.environ['model'] = 'gemini'
+        os.environ['api_key'] = self.llm_args['palm2']['api_key']
         result = subprocess.run(self.command, capture_output=True, text=True)
-        print(result.stderr)
+        # print(result.stderr)
         return result.stdout
     
     def str2idx_sig(self, content):
@@ -100,9 +110,9 @@ class LLM_Enhancement:
 
 if __name__ == "__main__":
     disease = 'asthma'
-    model_name = 'gpt-4'
+    model_name = 'palm2'
     ps_sig = ['RAD50', 'TNIP1', 'ADCY2', 'KIF3A', 'PTGDR2', 'ADCYAP1R1', 'SCGB3A2', 'PARP1', 'ADRB2', 'DNAH5', 'DNMT1', 'EDN1', 'ALDH2', 'CDHR3', 'IKZF3', 'IFNL3', 'CTNNA3', 'CXCL1', 'TBX21', 'HLA-DPB1']
-    at_sig = ['bronchial disease', 'cough variant asthma', 'occupational asthma', 'intrinsic asthma', 'allergic asthma', 'RAD50', 'TNIP1', 'ADCY2', 'KIF3A', 'PTGDR2', 'ADCYAP1R1', 'SCGB3A2', 'PARP1', 'ADRB2', 'DNAH5', 'DNMT1', 'EDN1', 'ALDH2', 'CDHR3', 'IKZF3', 'IFNL3', 'CTNNA3', 'CXCL1', 'TBX21', 'HLA-DPB1']
+    at_sig = ['RAD50', 'TNIP1', 'ADCY2', 'KIF3A', 'PTGDR2', 'ADCYAP1R1', 'SCGB3A2', 'PARP1', 'ADRB2', 'DNAH5', 'DNMT1', 'EDN1', 'ALDH2', 'CDHR3', 'IKZF3', 'IFNL3', 'CTNNA3', 'CXCL1', 'TBX21', 'HLA-DPB1', 'bronchial disease', 'cough variant asthma', 'occupational asthma', 'intrinsic asthma', 'allergic asthma', ]
     ds_sig = ['DNM1L', 'MIR499B', 'HUWE1', 'ATP9A', 'RAD50', 'G3BP1', 'CDK6', 'HNRNPR', 'CDKN1A', 'TNIP1', 'TRDN', 'RACK1', 'TUBGCP3', 'SEMA4F', 'MYBBP1A', 'OLFM4', 'CCT4', 'PDLIM5', 'CTCF', 'NFAT5']
     llm = LLM_Enhancement()
     result = llm.sig_suggestion(disease, model_name, ps_sig, at_sig, ds_sig)

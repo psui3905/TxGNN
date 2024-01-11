@@ -4,7 +4,7 @@ import os
 
 os.environ['model'] = ''
 os.environ['prompt'] = ''
-os.environ['api_key'] = ''
+os.environ['api_key'] = 'AIzaSyC-1qYQlqg5QG3Z8QlZy9zv7zZ3X6YQY5o'
 
 # Path to your Python 3.9 interpreter '/path/to/python3.9/bin/python'
 python39_interpreter = '/opt/conda/envs/py39/bin/python'

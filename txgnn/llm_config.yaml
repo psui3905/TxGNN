@@ -1,15 +1,15 @@
 gemini:
   api_key: ''
   model: 'gemini-pro'
-  temperature: 0.3
+  temperature: 0.5
 
 palm2:
   api_key: ''
   model: 'models/palm2-large-pubmed'
-  temperature: 0.3
+  temperature: 0.5
 
 gpt:
-  api_key: ''
+  api_key: 'sk-'
   gpt-4:
     model: 'gpt-4'
     temperature: 0.5
@@ -19,7 +19,9 @@ gpt:
     temperature: 0.5
     top_p: 0.7
 
-max_output_tokens: 60
-instructions: 'Imagine you are an expert at the intersection of pharmaceutical science and artificial intelligence. Your task is to identify the most informative signature for a specific disease to aid in drug repurposing. You are provided with several signature profiles. You need to evaluate these profiles and decide which one is the best to serve as an auxiliary disease embedding.'
+max_output_tokens: 100
+instructions: 'Imagine you are an expert at the intersection of pharmaceutical science and artificial intelligence. Your task is to identify the most informative signature for a specific disease to aid in drug repurposing. You are provided with several signature profiles. You need to evaluate these profiles and decide which one is the best to serve as an auxiliary disease embedding. Signature includes: 
+  1. Protein signatures (PS), corresponds to proteins in the disease pathway; 2. All-node-types signatures (AT), extended the principle of protein signature and involved node types connect to diseases on theraputic knowledge graph, including effect/phenotype, exposure, and diseas, such that if two diseases share the same nodes in these additional node types, they have similar biological underpinnings.
+  3. Diffusion signatures (DS), simulates many random walks on KG and involved nodes correspond to a multi-hop snapshot of molecular interactions centering around the diseases on the knowledge graph, and the visitation probability corresponds to the influence level.'
 
 
