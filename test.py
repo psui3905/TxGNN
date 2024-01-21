@@ -23,29 +23,30 @@ TxGNN.model_initialize(n_hid = 100, # number of hidden dimensions
                       agg_measure = 'rarity', # how to aggregate sim disease emb with target disease emb, choose from ['rarity', 'avg']
                       num_walks = 200, # for protein_random_walk sim_measure, define number of sampled walks
                       path_length = 2, # for protein_random_walk sim_measure, define path length
-                      llm = True)
+                      llm = False)
 
 TxGNN.pretrain(n_epoch = 2, 
               learning_rate = 1e-3,
               batch_size = 1024, 
               train_print_per_n = 20)
 
-# TxGNN.save_model('./gpt4_pretrain_2')
+# TxGNN.save_model('./pretrain_2')
 
 TxGNN.finetune(n_epoch = 500, 
                learning_rate = 5e-4,
                train_print_per_n = 5,
                valid_per_n = 20)
 
-TxGNN.save_model('./palm2_500')
+TxGNN.save_model('./vanilla_pretrain_500')
 
 TxEval = TxEval(model = TxGNN)
+
 result = TxEval.eval_disease_centric(disease_idxs = 'test_set', 
                                      show_plot = False, 
                                      verbose = True, 
                                      save_result = True,
                                      return_raw = False,
-                                     save_name = './palm2_500_eval.pkl')
+                                     save_name = './vanilla_pretrain_500_eval.pkl')
 
 # result = TxEval.eval_disease_centric(disease_idxs = [9907.0, 12787.0], 
 #                                      relation = 'indication', 

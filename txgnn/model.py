@@ -123,6 +123,7 @@ class DistMultPredictor(nn.Module):
                     self.diseases_profile_ds_etypes[etype] = diseases_profile_ds
                     print('Done!')
                     
+                # print(len(all_disease_ids))
                 diseaseid2id = dict(zip(all_disease_ids.detach().cpu().numpy(), range(len(all_disease_ids))))
                 disease_profile_tensor = torch.stack([diseases_profile[i.item()] for i in all_disease_ids])
                 sim_all = sim_matrix(disease_profile_tensor, disease_profile_tensor)

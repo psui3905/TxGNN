@@ -8,10 +8,10 @@ os.environ['model'] = ''
 os.environ['prompt'] = ''
 os.environ['api_key'] = ''
 
-question = '''Which signature profile is the best as disease embedding for the query disease? (give a short reasoning)'''
+question = '''Which signature profile is the best as disease embedding for the query disease? (give a short reasoning in two sentence)'''
 
 final_question ='''Provide your answer in the format (nothing else should be included in your answer): 
-Most informative signature: [Choose from (1), (2), (3)]
+Most informative signature: [Choose from (1), (2), or (3)]
 Confidential score: [Assign a score from 0.0 to 1.0 for each signature, ensuring the total score across all signatures sums to 1.0]'''
 
 refinement = '''Which signature profile is most informative for the query disease and can be used as disease embedding? Solve them in a step-by-step fashion, starting by summarizing the available information. 
@@ -52,7 +52,7 @@ class LLM_Enhancement:
         reason_prompt = ['Reasoning: ' + reason for i, reason in enumerate(reasons)]
         reason_prompt = '\n'.join(reason_prompt)
         refine_prompt = self.llm_args['instructions'] + '\n' + info + '\n' + refinement + '\n' + reason_prompt + '\n' + final_question
-        print(refine_prompt)
+        # print(refine_prompt)
         if model == 'gemini':
             return self.gemini(prompt=refine_prompt)
         elif model == 'palm2':
@@ -101,6 +101,12 @@ class LLM_Enhancement:
             # print(content)
             choosen_sig = content.split('\n')[0].split(': ')[1].split()[0].lower()
             # score = float(content.split('\n')[1].split(': ')[1])
+            if choosen_sig == '(1)':
+                choosen_sig = 'ps'
+            elif choosen_sig == '(2)':
+                choosen_sig = 'at'
+            elif choosen_sig == '(3)':
+                choosen_sig = 'ds'
             print('Best: ' + choosen_sig + ' ' + content.split('\n')[1])
         except:
             # print('LLM+ failed, using default signature: at')
